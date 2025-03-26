@@ -4,6 +4,8 @@
  * This software may be modified and distributed under the terms
  * of the MIT license.  See the LICENSE file for details.
  */
+#include "main.h"
+
 #include <string.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -11,57 +13,167 @@
 #include <stdio.h>
 #include <vector>
 #include <string>
-#include "dynamic_libs/os_functions.h"
-#include "dynamic_libs/sys_functions.h"
-#include "dynamic_libs/padscore_functions.h"
-#include "dynamic_libs/vpad_functions.h"
-#include "system/memory.h"
-#include "utils/utils.h"
-#include "common/common.h"
+
+#include <avm/tv.h>
+#include <coreinit/memfrmheap.h>
+#include <coreinit/screen.h>
+#include <coreinit/thread.h>
+#include <padscore/kpad.h>
+#include <proc_ui/procui.h>
+#include <vpad/input.h>
+
+#define CONSOLE_FRAME_HEAP_TAG (0x000DECAF)
+
+#define OSScreenEnable(enable)      OSScreenEnableEx(SCREEN_TV, enable); OSScreenEnableEx(SCREEN_DRC, enable);
+#define OSScreenClearBuffer(colour) OSScreenClearBufferEx(SCREEN_TV, colour); OSScreenClearBufferEx(SCREEN_DRC, colour);
+#define OSScreenPutFont(x, y, buf)  OSScreenPutFontEx(SCREEN_TV, x, y, buf); OSScreenPutFontEx(SCREEN_DRC, x, y, buf);
+#define OSScreenFlipBuffers()       OSScreenFlipBuffersEx(SCREEN_TV); OSScreenFlipBuffersEx(SCREEN_DRC);
 
 static const char *verChar = "WiiU Video Mode Changer v1.0 by FIX94";
+static const char * const outPortStr[] = {"HDMI", "Component", "Composite/S-Video", "Composite/SCART"};
+static const char * const outResStr[] = {"Unused [0]", "576i PAL50", "480i", "480p", "720p", "720p 3D?", "1080i", "1080p", "Unused [8]", "Unused [9]", "480i PAL60", "576p", "720p 50Hz (glitchy GamePad)", "1080i 50Hz (glitchy GamePad)", "1080p 50Hz (glitchy GamePad)"};
 
-static unsigned int getButtonsDown();
+static unsigned int sScreenBufTvSize = 0;
+static unsigned int sScreenBufDrcSize = 0;
 
-#define OSScreenEnable(enable) OSScreenEnableEx(0, enable); OSScreenEnableEx(1, enable);
-#define OSScreenClearBuffer(tmp) OSScreenClearBufferEx(0, tmp); OSScreenClearBufferEx(1, tmp);
-#define OSScreenPutFont(x, y, buf) OSScreenPutFontEx(0, x, y, buf); OSScreenPutFontEx(1, x, y, buf);
-#define OSScreenFlipBuffers() OSScreenFlipBuffersEx(0); OSScreenFlipBuffersEx(1);
-
-const char *outPortStr[] = { "HDMI", "Component", "Composite/S-Video", "Composite/SCART" };
-const char *outResStr[] = { "720p (fallback?)", "576i PAL50", "480i", "480p", "720p", "720p 3D?", "1080i", "1080p", "720p (again?)", "720p (No Signal from Component?)", "480i PAL60", "720p (yet again?)", "720p (50Hz, glitchy gamepad)", "1080i (50Hz, glitchy gamepad)", "1080p (50Hz, glitchy gamepad)" };
-
-extern "C" int Menu_Main(void)
+static unsigned int wpadToVpad(unsigned int buttons)
 {
-	InitOSFunctionPointers();
-	InitSysFunctionPointers();
-	InitPadScoreFunctionPointers();
-	InitVPadFunctionPointers();
+	unsigned int conv_buttons = 0;
 
-	int screen_buf0_size, screen_buf1_size;
-	uint8_t *screenBuffer;
+	if(buttons & WPAD_BUTTON_LEFT)
+		conv_buttons |= VPAD_BUTTON_LEFT;
+
+	if(buttons & WPAD_BUTTON_RIGHT)
+		conv_buttons |= VPAD_BUTTON_RIGHT;
+
+	if(buttons & WPAD_BUTTON_DOWN)
+		conv_buttons |= VPAD_BUTTON_DOWN;
+
+	if(buttons & WPAD_BUTTON_UP)
+		conv_buttons |= VPAD_BUTTON_UP;
+
+	if(buttons & WPAD_BUTTON_PLUS)
+		conv_buttons |= VPAD_BUTTON_PLUS;
+
+	if(buttons & WPAD_BUTTON_B)
+		conv_buttons |= VPAD_BUTTON_B;
+
+	if(buttons & WPAD_BUTTON_A)
+		conv_buttons |= VPAD_BUTTON_A;
+
+	if(buttons & WPAD_BUTTON_MINUS)
+		conv_buttons |= VPAD_BUTTON_MINUS;
+
+	if(buttons & WPAD_BUTTON_HOME)
+		conv_buttons |= VPAD_BUTTON_HOME;
+
+	return conv_buttons;
+}
+
+static unsigned int wpadClassicToVpad(unsigned int buttons)
+{
+	unsigned int conv_buttons = 0;
+
+	if(buttons & WPAD_CLASSIC_BUTTON_LEFT)
+		conv_buttons |= VPAD_BUTTON_LEFT;
+
+	if(buttons & WPAD_CLASSIC_BUTTON_RIGHT)
+		conv_buttons |= VPAD_BUTTON_RIGHT;
+
+	if(buttons & WPAD_CLASSIC_BUTTON_DOWN)
+		conv_buttons |= VPAD_BUTTON_DOWN;
+
+	if(buttons & WPAD_CLASSIC_BUTTON_UP)
+		conv_buttons |= VPAD_BUTTON_UP;
+
+	if(buttons & WPAD_CLASSIC_BUTTON_PLUS)
+		conv_buttons |= VPAD_BUTTON_PLUS;
+
+	if(buttons & WPAD_CLASSIC_BUTTON_X)
+		conv_buttons |= VPAD_BUTTON_X;
+
+	if(buttons & WPAD_CLASSIC_BUTTON_Y)
+		conv_buttons |= VPAD_BUTTON_Y;
+
+	if(buttons & WPAD_CLASSIC_BUTTON_B)
+		conv_buttons |= VPAD_BUTTON_B;
+
+	if(buttons & WPAD_CLASSIC_BUTTON_A)
+		conv_buttons |= VPAD_BUTTON_A;
+
+	if(buttons & WPAD_CLASSIC_BUTTON_MINUS)
+		conv_buttons |= VPAD_BUTTON_MINUS;
+
+	if(buttons & WPAD_CLASSIC_BUTTON_HOME)
+		conv_buttons |= VPAD_BUTTON_HOME;
+
+	if(buttons & WPAD_CLASSIC_BUTTON_ZR)
+		conv_buttons |= VPAD_BUTTON_ZR;
+
+	if(buttons & WPAD_CLASSIC_BUTTON_ZL)
+		conv_buttons |= VPAD_BUTTON_ZL;
+
+	if(buttons & WPAD_CLASSIC_BUTTON_R)
+		conv_buttons |= VPAD_BUTTON_R;
+
+	if(buttons & WPAD_CLASSIC_BUTTON_L)
+		conv_buttons |= VPAD_BUTTON_L;
+
+	return conv_buttons;
+}
+
+static unsigned int getButtonsDown()
+{
+	unsigned int btnDown = 0;
+
+	VPADReadError vpadError = VPAD_READ_UNINITIALIZED;
+	VPADStatus vpad{};
+	VPADRead(VPAD_CHAN_0, &vpad, 1, &vpadError);
+	if(vpadError == 0)
+		btnDown |= vpad.trigger;
+
+	int i;
+	for(i = 0; i < 4; i++)
+	{
+		WPADExtensionType controller_type;
+		if(WPADProbe((WPADChan) i, &controller_type) != 0)
+			continue;
+		KPADStatus kpadData{};
+		KPADRead((KPADChan) i, &kpadData, 1);
+		if(kpadData.extensionType <= 1)
+			btnDown |= wpadToVpad(kpadData.trigger);
+		else
+			btnDown |= wpadClassicToVpad(kpadData.classic.trigger);
+	}
+
+	return btnDown;
+}
+
+unsigned int procUiCallbackAcquire(void *context)
+{
+	MEMHeapHandle heap = MEMGetBaseHeapHandle(MEM_BASE_HEAP_MEM1);
+	void *screenBufTv = MEMAllocFromFrmHeapEx(heap, sScreenBufTvSize, 0x100);
+	void *screenBufDrc = MEMAllocFromFrmHeapEx(heap, sScreenBufDrcSize, 0x100);
+	OSScreenSetBufferEx(SCREEN_TV, screenBufTv);
+	OSScreenSetBufferEx(SCREEN_DRC, screenBufDrc);
+	return 0;
+}
+
+unsigned int procUiCallbackRelease(void *context)
+{
+	MEMHeapHandle heap = MEMGetBaseHeapHandle(MEM_BASE_HEAP_MEM1);
+    MEMFreeByStateToFrmHeap(heap, CONSOLE_FRAME_HEAP_TAG);
+	return 0;
+}
+
+int main(int argc, char **argv)
+{
 	int redraw = 1;
 
-	unsigned int avm_handle;
-	OSDynLoad_Acquire("avm.rpl", &avm_handle);
-
-	int (*AVMSetTVVideoRegion)(int r3, int r4, int r5);
-	int (*AVMSetTVOutPort)(int r3, int r4);
-	int (*AVMSetTVScanResolution)(int r3);
-	int (*AVMDebugIsNTSC)();
-	int (*AVMGetCurrentPort)(int *port);
-
-	OSDynLoad_FindExport(avm_handle, 0, "AVMSetTVVideoRegion", &AVMSetTVVideoRegion);
-	OSDynLoad_FindExport(avm_handle, 0, "AVMSetTVOutPort", &AVMSetTVOutPort);
-	OSDynLoad_FindExport(avm_handle, 0, "AVMSetTVScanResolution", &AVMSetTVScanResolution);
-	OSDynLoad_FindExport(avm_handle, 0, "AVMDebugIsNTSC", &AVMDebugIsNTSC);
-	OSDynLoad_FindExport(avm_handle, 0, "AVMGetCurrentPort", &AVMGetCurrentPort);
-
-	bool isNTSC = !!AVMDebugIsNTSC();
+	bool isNTSC = AVMDebugIsNTSC();
 	bool wantNTSC = isNTSC;
 
-	int outPort = 0;
-	AVMGetCurrentPort(&outPort);
+	int outPort = TVEGetCurrentPort();
 	if(outPort > 3) outPort = 0;
 	int wantPort = outPort;
 
@@ -71,18 +183,17 @@ extern "C" int Menu_Main(void)
 	else if(outPort == 1) wantRes = 3; //480p from Component
 	else if(outPort == 3) wantRes = 10; //480i PAL60 from Composite/SCART
 
-	memoryInitialize();
-
 	OSScreenInit();
-	screen_buf0_size = OSScreenGetBufferSizeEx(0);
-	screen_buf1_size = OSScreenGetBufferSizeEx(1);
-	screenBuffer = (uint8_t*)MEMBucket_alloc(screen_buf0_size+screen_buf1_size, 0x100);
-	OSScreenSetBufferEx(0, (void*)(screenBuffer));
-	OSScreenSetBufferEx(1, (void*)(screenBuffer + screen_buf0_size));
-	OSScreenEnable(1);
+	sScreenBufTvSize = OSScreenGetBufferSizeEx(SCREEN_TV);
+	sScreenBufDrcSize = OSScreenGetBufferSizeEx(SCREEN_DRC);
+	procUiCallbackAcquire(nullptr);
+	OSScreenEnable(TRUE);
+
+	ProcUIRegisterCallback(PROCUI_CALLBACK_ACQUIRE, procUiCallbackAcquire, nullptr, 100);
+	ProcUIRegisterCallback(PROCUI_CALLBACK_RELEASE, procUiCallbackRelease, nullptr, 100);
 
 	KPADInit();
-	WPADEnableURCC(1);
+	WPADEnableURCC(TRUE);
 
 	//garbage read
 	getButtonsDown();
@@ -91,7 +202,7 @@ extern "C" int Menu_Main(void)
 	bool applyChanges = false;
 	while(1)
 	{
-		usleep(25000);
+		OSSleepTicks(OSMicrosecondsToTicks(25000));
 		unsigned int btnDown = getButtonsDown();
 
 		if( btnDown & VPAD_BUTTON_HOME )
@@ -251,139 +362,19 @@ extern "C" int Menu_Main(void)
 	OSScreenFlipBuffers();
 
 	OSScreenEnable(0);
-	MEMBucket_free(screenBuffer);
-
-	memoryRelease();
+	if (ProcUIInForeground()) {
+		OSScreenShutdown();
+		procUiCallbackRelease(nullptr);
+	}
 
 	if(applyChanges)
 	{
 		if((isNTSC && !wantNTSC) || (!isNTSC && wantNTSC))
-			AVMSetTVVideoRegion(wantNTSC ? 1 : 2, wantPort, wantRes);
+			AVMSetTVVideoRegion(wantNTSC ? AVM_TV_VIDEO_REGION_NTSC : AVM_TV_VIDEO_REGION_PAL, (TVEPort) wantPort, (AVMTvResolution) wantRes);
 		else if(outPort != wantPort)
-			AVMSetTVOutPort(wantPort, wantRes);
+			AVMSetTVOutPort((TVEPort) wantPort, (AVMTvResolution) wantRes);
 		else //only set resolution
-			AVMSetTVScanResolution(wantRes);
+			AVMSetTVScanResolution((AVMTvResolution) wantRes);
 	}
 	return EXIT_SUCCESS;
-}
-
-/* General Input Code */
-
-static unsigned int wpadToVpad(unsigned int buttons)
-{
-	unsigned int conv_buttons = 0;
-
-	if(buttons & WPAD_BUTTON_LEFT)
-		conv_buttons |= VPAD_BUTTON_LEFT;
-
-	if(buttons & WPAD_BUTTON_RIGHT)
-		conv_buttons |= VPAD_BUTTON_RIGHT;
-
-	if(buttons & WPAD_BUTTON_DOWN)
-		conv_buttons |= VPAD_BUTTON_DOWN;
-
-	if(buttons & WPAD_BUTTON_UP)
-		conv_buttons |= VPAD_BUTTON_UP;
-
-	if(buttons & WPAD_BUTTON_PLUS)
-		conv_buttons |= VPAD_BUTTON_PLUS;
-
-	if(buttons & WPAD_BUTTON_2)
-		conv_buttons |= VPAD_BUTTON_X;
-
-	if(buttons & WPAD_BUTTON_1)
-		conv_buttons |= VPAD_BUTTON_Y;
-
-	if(buttons & WPAD_BUTTON_B)
-		conv_buttons |= VPAD_BUTTON_B;
-
-	if(buttons & WPAD_BUTTON_A)
-		conv_buttons |= VPAD_BUTTON_A;
-
-	if(buttons & WPAD_BUTTON_MINUS)
-		conv_buttons |= VPAD_BUTTON_MINUS;
-
-	if(buttons & WPAD_BUTTON_HOME)
-		conv_buttons |= VPAD_BUTTON_HOME;
-
-	return conv_buttons;
-}
-
-static unsigned int wpadClassicToVpad(unsigned int buttons)
-{
-	unsigned int conv_buttons = 0;
-
-	if(buttons & WPAD_CLASSIC_BUTTON_LEFT)
-		conv_buttons |= VPAD_BUTTON_LEFT;
-
-	if(buttons & WPAD_CLASSIC_BUTTON_RIGHT)
-		conv_buttons |= VPAD_BUTTON_RIGHT;
-
-	if(buttons & WPAD_CLASSIC_BUTTON_DOWN)
-		conv_buttons |= VPAD_BUTTON_DOWN;
-
-	if(buttons & WPAD_CLASSIC_BUTTON_UP)
-		conv_buttons |= VPAD_BUTTON_UP;
-
-	if(buttons & WPAD_CLASSIC_BUTTON_PLUS)
-		conv_buttons |= VPAD_BUTTON_PLUS;
-
-	if(buttons & WPAD_CLASSIC_BUTTON_X)
-		conv_buttons |= VPAD_BUTTON_X;
-
-	if(buttons & WPAD_CLASSIC_BUTTON_Y)
-		conv_buttons |= VPAD_BUTTON_Y;
-
-	if(buttons & WPAD_CLASSIC_BUTTON_B)
-		conv_buttons |= VPAD_BUTTON_B;
-
-	if(buttons & WPAD_CLASSIC_BUTTON_A)
-		conv_buttons |= VPAD_BUTTON_A;
-
-	if(buttons & WPAD_CLASSIC_BUTTON_MINUS)
-		conv_buttons |= VPAD_BUTTON_MINUS;
-
-	if(buttons & WPAD_CLASSIC_BUTTON_HOME)
-		conv_buttons |= VPAD_BUTTON_HOME;
-
-	if(buttons & WPAD_CLASSIC_BUTTON_ZR)
-		conv_buttons |= VPAD_BUTTON_ZR;
-
-	if(buttons & WPAD_CLASSIC_BUTTON_ZL)
-		conv_buttons |= VPAD_BUTTON_ZL;
-
-	if(buttons & WPAD_CLASSIC_BUTTON_R)
-		conv_buttons |= VPAD_BUTTON_R;
-
-	if(buttons & WPAD_CLASSIC_BUTTON_L)
-		conv_buttons |= VPAD_BUTTON_L;
-
-	return conv_buttons;
-}
-
-static unsigned int getButtonsDown()
-{
-	unsigned int btnDown = 0;
-
-	s32 vpadError = -1;
-	VPADData vpad;
-	VPADRead(0, &vpad, 1, &vpadError);
-	if(vpadError == 0)
-		btnDown |= vpad.btns_d;
-
-	int i;
-	for(i = 0; i < 4; i++)
-	{
-		u32 controller_type;
-		if(WPADProbe(i, &controller_type) != 0)
-			continue;
-		KPADData kpadData;
-		KPADRead(i, &kpadData, 1);
-		if(kpadData.device_type <= 1)
-			btnDown |= wpadToVpad(kpadData.btns_d);
-		else
-			btnDown |= wpadClassicToVpad(kpadData.classic.btns_d);
-	}
-
-	return btnDown;
 }
