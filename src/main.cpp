@@ -18,6 +18,7 @@
 #include <coreinit/memfrmheap.h>
 #include <coreinit/screen.h>
 #include <coreinit/thread.h>
+#include <coreinit/title.h>
 #include <padscore/kpad.h>
 #include <proc_ui/procui.h>
 #include <vpad/input.h>
@@ -149,7 +150,7 @@ static unsigned int getButtonsDown()
 	return btnDown;
 }
 
-unsigned int procUiCallbackAcquire(void *context)
+unsigned int procUiCallbackAcquire([[maybe_unused]] void *context)
 {
 	MEMHeapHandle heap = MEMGetBaseHeapHandle(MEM_BASE_HEAP_MEM1);
 	void *screenBufTv = MEMAllocFromFrmHeapEx(heap, sScreenBufTvSize, 0x100);
@@ -159,11 +160,16 @@ unsigned int procUiCallbackAcquire(void *context)
 	return 0;
 }
 
-unsigned int procUiCallbackRelease(void *context)
+unsigned int procUiCallbackRelease([[maybe_unused]] void *context)
 {
 	MEMHeapHandle heap = MEMGetBaseHeapHandle(MEM_BASE_HEAP_MEM1);
     MEMFreeByStateToFrmHeap(heap, CONSOLE_FRAME_HEAP_TAG);
 	return 0;
+}
+
+static inline bool runningFromMiiMaker()
+{
+    return (OSGetTitleID() & 0xFFFFFFFFFFFFF0FFull) == 0x000500101004A000ull;
 }
 
 int main(int argc, char **argv)
@@ -182,6 +188,10 @@ int main(int argc, char **argv)
 	if(outPort == 0) wantRes = 4; //720p from HDMI
 	else if(outPort == 1) wantRes = 3; //480p from Component
 	else if(outPort == 3) wantRes = 10; //480i PAL60 from Composite/SCART
+
+	if (runningFromMiiMaker()) {
+        OSEnableHomeButtonMenu(FALSE);
+    }
 
 	OSScreenInit();
 	sScreenBufTvSize = OSScreenGetBufferSizeEx(SCREEN_TV);
@@ -205,10 +215,11 @@ int main(int argc, char **argv)
 		OSSleepTicks(OSMicrosecondsToTicks(25000));
 		unsigned int btnDown = getButtonsDown();
 
-		if( btnDown & VPAD_BUTTON_HOME )
-			break;
-
-		if( btnDown & VPAD_BUTTON_RIGHT )
+		if (btnDown & VPAD_BUTTON_HOME) {
+			if (runningFromMiiMaker()) {
+                break;
+            }
+		} else if( btnDown & VPAD_BUTTON_RIGHT )
 		{
 			if(curSel == 0) //NTSC/PAL
 			{
@@ -361,7 +372,7 @@ int main(int argc, char **argv)
 	OSScreenClearBuffer(0);
 	OSScreenFlipBuffers();
 
-	OSScreenEnable(0);
+	OSScreenEnable(FALSE);
 	if (ProcUIInForeground()) {
 		OSScreenShutdown();
 		procUiCallbackRelease(nullptr);
