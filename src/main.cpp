@@ -39,132 +39,132 @@ static unsigned int sScreenBufDrcSize = 0;
 
 static unsigned int wpadToVpad(unsigned int buttons)
 {
-	unsigned int conv_buttons = 0;
+    unsigned int conv_buttons = 0;
 
-	if(buttons & WPAD_BUTTON_LEFT)
-		conv_buttons |= VPAD_BUTTON_LEFT;
+    if(buttons & WPAD_BUTTON_LEFT)
+        conv_buttons |= VPAD_BUTTON_LEFT;
 
-	if(buttons & WPAD_BUTTON_RIGHT)
-		conv_buttons |= VPAD_BUTTON_RIGHT;
+    if(buttons & WPAD_BUTTON_RIGHT)
+        conv_buttons |= VPAD_BUTTON_RIGHT;
 
-	if(buttons & WPAD_BUTTON_DOWN)
-		conv_buttons |= VPAD_BUTTON_DOWN;
+    if(buttons & WPAD_BUTTON_DOWN)
+        conv_buttons |= VPAD_BUTTON_DOWN;
 
-	if(buttons & WPAD_BUTTON_UP)
-		conv_buttons |= VPAD_BUTTON_UP;
+    if(buttons & WPAD_BUTTON_UP)
+        conv_buttons |= VPAD_BUTTON_UP;
 
-	if(buttons & WPAD_BUTTON_PLUS)
-		conv_buttons |= VPAD_BUTTON_PLUS;
+    if(buttons & WPAD_BUTTON_PLUS)
+        conv_buttons |= VPAD_BUTTON_PLUS;
 
-	if(buttons & WPAD_BUTTON_B)
-		conv_buttons |= VPAD_BUTTON_B;
+    if(buttons & WPAD_BUTTON_B)
+        conv_buttons |= VPAD_BUTTON_B;
 
-	if(buttons & WPAD_BUTTON_A)
-		conv_buttons |= VPAD_BUTTON_A;
+    if(buttons & WPAD_BUTTON_A)
+        conv_buttons |= VPAD_BUTTON_A;
 
-	if(buttons & WPAD_BUTTON_MINUS)
-		conv_buttons |= VPAD_BUTTON_MINUS;
+    if(buttons & WPAD_BUTTON_MINUS)
+        conv_buttons |= VPAD_BUTTON_MINUS;
 
-	if(buttons & WPAD_BUTTON_HOME)
-		conv_buttons |= VPAD_BUTTON_HOME;
+    if(buttons & WPAD_BUTTON_HOME)
+        conv_buttons |= VPAD_BUTTON_HOME;
 
-	return conv_buttons;
+    return conv_buttons;
 }
 
 static unsigned int wpadClassicToVpad(unsigned int buttons)
 {
-	unsigned int conv_buttons = 0;
+    unsigned int conv_buttons = 0;
 
-	if(buttons & WPAD_CLASSIC_BUTTON_LEFT)
-		conv_buttons |= VPAD_BUTTON_LEFT;
+    if(buttons & WPAD_CLASSIC_BUTTON_LEFT)
+        conv_buttons |= VPAD_BUTTON_LEFT;
 
-	if(buttons & WPAD_CLASSIC_BUTTON_RIGHT)
-		conv_buttons |= VPAD_BUTTON_RIGHT;
+    if(buttons & WPAD_CLASSIC_BUTTON_RIGHT)
+        conv_buttons |= VPAD_BUTTON_RIGHT;
 
-	if(buttons & WPAD_CLASSIC_BUTTON_DOWN)
-		conv_buttons |= VPAD_BUTTON_DOWN;
+    if(buttons & WPAD_CLASSIC_BUTTON_DOWN)
+        conv_buttons |= VPAD_BUTTON_DOWN;
 
-	if(buttons & WPAD_CLASSIC_BUTTON_UP)
-		conv_buttons |= VPAD_BUTTON_UP;
+    if(buttons & WPAD_CLASSIC_BUTTON_UP)
+        conv_buttons |= VPAD_BUTTON_UP;
 
-	if(buttons & WPAD_CLASSIC_BUTTON_PLUS)
-		conv_buttons |= VPAD_BUTTON_PLUS;
+    if(buttons & WPAD_CLASSIC_BUTTON_PLUS)
+        conv_buttons |= VPAD_BUTTON_PLUS;
 
-	if(buttons & WPAD_CLASSIC_BUTTON_X)
-		conv_buttons |= VPAD_BUTTON_X;
+    if(buttons & WPAD_CLASSIC_BUTTON_X)
+        conv_buttons |= VPAD_BUTTON_X;
 
-	if(buttons & WPAD_CLASSIC_BUTTON_Y)
-		conv_buttons |= VPAD_BUTTON_Y;
+    if(buttons & WPAD_CLASSIC_BUTTON_Y)
+        conv_buttons |= VPAD_BUTTON_Y;
 
-	if(buttons & WPAD_CLASSIC_BUTTON_B)
-		conv_buttons |= VPAD_BUTTON_B;
+    if(buttons & WPAD_CLASSIC_BUTTON_B)
+        conv_buttons |= VPAD_BUTTON_B;
 
-	if(buttons & WPAD_CLASSIC_BUTTON_A)
-		conv_buttons |= VPAD_BUTTON_A;
+    if(buttons & WPAD_CLASSIC_BUTTON_A)
+        conv_buttons |= VPAD_BUTTON_A;
 
-	if(buttons & WPAD_CLASSIC_BUTTON_MINUS)
-		conv_buttons |= VPAD_BUTTON_MINUS;
+    if(buttons & WPAD_CLASSIC_BUTTON_MINUS)
+        conv_buttons |= VPAD_BUTTON_MINUS;
 
-	if(buttons & WPAD_CLASSIC_BUTTON_HOME)
-		conv_buttons |= VPAD_BUTTON_HOME;
+    if(buttons & WPAD_CLASSIC_BUTTON_HOME)
+        conv_buttons |= VPAD_BUTTON_HOME;
 
-	if(buttons & WPAD_CLASSIC_BUTTON_ZR)
-		conv_buttons |= VPAD_BUTTON_ZR;
+    if(buttons & WPAD_CLASSIC_BUTTON_ZR)
+        conv_buttons |= VPAD_BUTTON_ZR;
 
-	if(buttons & WPAD_CLASSIC_BUTTON_ZL)
-		conv_buttons |= VPAD_BUTTON_ZL;
+    if(buttons & WPAD_CLASSIC_BUTTON_ZL)
+        conv_buttons |= VPAD_BUTTON_ZL;
 
-	if(buttons & WPAD_CLASSIC_BUTTON_R)
-		conv_buttons |= VPAD_BUTTON_R;
+    if(buttons & WPAD_CLASSIC_BUTTON_R)
+        conv_buttons |= VPAD_BUTTON_R;
 
-	if(buttons & WPAD_CLASSIC_BUTTON_L)
-		conv_buttons |= VPAD_BUTTON_L;
+    if(buttons & WPAD_CLASSIC_BUTTON_L)
+        conv_buttons |= VPAD_BUTTON_L;
 
-	return conv_buttons;
+    return conv_buttons;
 }
 
 static unsigned int getButtonsDown()
 {
-	unsigned int btnDown = 0;
+    unsigned int btnDown = 0;
 
-	VPADReadError vpadError = VPAD_READ_UNINITIALIZED;
-	VPADStatus vpad{};
-	VPADRead(VPAD_CHAN_0, &vpad, 1, &vpadError);
-	if(vpadError == 0)
-		btnDown |= vpad.trigger;
+    VPADReadError vpadError = VPAD_READ_UNINITIALIZED;
+    VPADStatus vpad{};
+    VPADRead(VPAD_CHAN_0, &vpad, 1, &vpadError);
+    if(vpadError == 0)
+        btnDown |= vpad.trigger;
 
-	int i;
-	for(i = 0; i < 4; i++)
-	{
-		WPADExtensionType controller_type;
-		if(WPADProbe((WPADChan) i, &controller_type) != 0)
-			continue;
-		KPADStatus kpadData{};
-		KPADRead((KPADChan) i, &kpadData, 1);
-		if(kpadData.extensionType <= 1)
-			btnDown |= wpadToVpad(kpadData.trigger);
-		else
-			btnDown |= wpadClassicToVpad(kpadData.classic.trigger);
-	}
+    int i;
+    for(i = 0; i < 4; i++)
+    {
+        WPADExtensionType controller_type;
+        if(WPADProbe((WPADChan) i, &controller_type) != 0)
+            continue;
+        KPADStatus kpadData{};
+        KPADRead((KPADChan) i, &kpadData, 1);
+        if(kpadData.extensionType <= 1)
+            btnDown |= wpadToVpad(kpadData.trigger);
+        else
+            btnDown |= wpadClassicToVpad(kpadData.classic.trigger);
+    }
 
-	return btnDown;
+    return btnDown;
 }
 
 unsigned int procUiCallbackAcquire([[maybe_unused]] void *context)
 {
-	MEMHeapHandle heap = MEMGetBaseHeapHandle(MEM_BASE_HEAP_MEM1);
-	void *screenBufTv = MEMAllocFromFrmHeapEx(heap, sScreenBufTvSize, 0x100);
-	void *screenBufDrc = MEMAllocFromFrmHeapEx(heap, sScreenBufDrcSize, 0x100);
-	OSScreenSetBufferEx(SCREEN_TV, screenBufTv);
-	OSScreenSetBufferEx(SCREEN_DRC, screenBufDrc);
-	return 0;
+    MEMHeapHandle heap = MEMGetBaseHeapHandle(MEM_BASE_HEAP_MEM1);
+    void *screenBufTv = MEMAllocFromFrmHeapEx(heap, sScreenBufTvSize, 0x100);
+    void *screenBufDrc = MEMAllocFromFrmHeapEx(heap, sScreenBufDrcSize, 0x100);
+    OSScreenSetBufferEx(SCREEN_TV, screenBufTv);
+    OSScreenSetBufferEx(SCREEN_DRC, screenBufDrc);
+    return 0;
 }
 
 unsigned int procUiCallbackRelease([[maybe_unused]] void *context)
 {
-	MEMHeapHandle heap = MEMGetBaseHeapHandle(MEM_BASE_HEAP_MEM1);
+    MEMHeapHandle heap = MEMGetBaseHeapHandle(MEM_BASE_HEAP_MEM1);
     MEMFreeByStateToFrmHeap(heap, CONSOLE_FRAME_HEAP_TAG);
-	return 0;
+    return 0;
 }
 
 static inline bool runningFromMiiMaker()
@@ -174,218 +174,218 @@ static inline bool runningFromMiiMaker()
 
 int main(int argc, char **argv)
 {
-	int redraw = 1;
+    int redraw = 1;
 
-	bool isNTSC = AVMDebugIsNTSC();
-	bool wantNTSC = isNTSC;
+    bool isNTSC = AVMDebugIsNTSC();
+    bool wantNTSC = isNTSC;
 
-	int outPort = TVEGetCurrentPort();
-	if(outPort > 3) outPort = 0;
-	int wantPort = outPort;
+    int outPort = TVEGetCurrentPort();
+    if(outPort > 3) outPort = 0;
+    int wantPort = outPort;
 
-	//int outRes; //still need to get resolution somehow...
-	int wantRes = 2; //default 480i
-	if(outPort == 0) wantRes = 4; //720p from HDMI
-	else if(outPort == 1) wantRes = 3; //480p from Component
-	else if(outPort == 3) wantRes = 10; //480i PAL60 from Composite/SCART
+    //int outRes; //still need to get resolution somehow...
+    int wantRes = 2; //default 480i
+    if(outPort == 0) wantRes = 4; //720p from HDMI
+    else if(outPort == 1) wantRes = 3; //480p from Component
+    else if(outPort == 3) wantRes = 10; //480i PAL60 from Composite/SCART
 
-	if (runningFromMiiMaker()) {
+    if (runningFromMiiMaker()) {
         OSEnableHomeButtonMenu(FALSE);
     }
 
-	OSScreenInit();
-	sScreenBufTvSize = OSScreenGetBufferSizeEx(SCREEN_TV);
-	sScreenBufDrcSize = OSScreenGetBufferSizeEx(SCREEN_DRC);
-	procUiCallbackAcquire(nullptr);
-	OSScreenEnable(TRUE);
+    OSScreenInit();
+    sScreenBufTvSize = OSScreenGetBufferSizeEx(SCREEN_TV);
+    sScreenBufDrcSize = OSScreenGetBufferSizeEx(SCREEN_DRC);
+    procUiCallbackAcquire(nullptr);
+    OSScreenEnable(TRUE);
 
-	ProcUIRegisterCallback(PROCUI_CALLBACK_ACQUIRE, procUiCallbackAcquire, nullptr, 100);
-	ProcUIRegisterCallback(PROCUI_CALLBACK_RELEASE, procUiCallbackRelease, nullptr, 100);
+    ProcUIRegisterCallback(PROCUI_CALLBACK_ACQUIRE, procUiCallbackAcquire, nullptr, 100);
+    ProcUIRegisterCallback(PROCUI_CALLBACK_RELEASE, procUiCallbackRelease, nullptr, 100);
 
-	KPADInit();
-	WPADEnableURCC(TRUE);
+    KPADInit();
+    WPADEnableURCC(TRUE);
 
-	//garbage read
-	getButtonsDown();
+    //garbage read
+    getButtonsDown();
 
-	int curSel = 0;
-	bool applyChanges = false;
-	while(1)
-	{
-		OSSleepTicks(OSMicrosecondsToTicks(25000));
-		unsigned int btnDown = getButtonsDown();
+    int curSel = 0;
+    bool applyChanges = false;
+    while(1)
+    {
+        OSSleepTicks(OSMicrosecondsToTicks(25000));
+        unsigned int btnDown = getButtonsDown();
 
-		if (btnDown & VPAD_BUTTON_HOME) {
-			if (runningFromMiiMaker()) {
+        if (btnDown & VPAD_BUTTON_HOME) {
+            if (runningFromMiiMaker()) {
                 break;
             }
-		} else if( btnDown & VPAD_BUTTON_RIGHT )
-		{
-			if(curSel == 0) //NTSC/PAL
-			{
-				wantNTSC = !wantNTSC;
-				if(wantNTSC)
-				{
-					//no Composite/SCART
-					if(wantPort == 3)
-					{
-						wantPort = 2; //Composite/S-Video
-						wantRes = 2; //480i
-					}
-				}
-				else //want PAL
-				{
-					//no Composite/S-Video
-					if(wantPort == 2)
-					{
-						wantPort = 3; //Composite/SCART
-						wantRes = 10; //480i PAL60
-					}
-				}
-			}
-			else if(curSel == 1) //Port
-			{
-				wantPort++;
-				if(wantPort > 3)
-					wantPort = 0;
-				if(wantNTSC)
-				{
-					//no Composite/SCART
-					if(wantPort == 3)
-						wantPort = 0;
-				}
-				else //want PAL
-				{
-					//no Composite/S-Video
-					if(wantPort == 2)
-						wantPort = 3;
-				}
-				//Set default res for port
-				if(wantPort == 0) wantRes = 4; //720p from HDMI
-				else if(wantPort == 1) wantRes = 3; //480p from Component
-				else if(wantPort == 2) wantRes = 2; //480i from Composite/S-Video
-				else if(wantPort == 3) wantRes = 10; //480i PAL60 from Composite/SCART
-			}
-			else if(curSel == 2) //Resolution
-			{
-				wantRes++;
-				if(wantRes > 14)
-					wantRes = 1;
-			}
-			redraw = 1;
-		}
+        } else if( btnDown & VPAD_BUTTON_RIGHT )
+        {
+            if(curSel == 0) //NTSC/PAL
+            {
+                wantNTSC = !wantNTSC;
+                if(wantNTSC)
+                {
+                    //no Composite/SCART
+                    if(wantPort == 3)
+                    {
+                        wantPort = 2; //Composite/S-Video
+                        wantRes = 2; //480i
+                    }
+                }
+                else //want PAL
+                {
+                    //no Composite/S-Video
+                    if(wantPort == 2)
+                    {
+                        wantPort = 3; //Composite/SCART
+                        wantRes = 10; //480i PAL60
+                    }
+                }
+            }
+            else if(curSel == 1) //Port
+            {
+                wantPort++;
+                if(wantPort > 3)
+                    wantPort = 0;
+                if(wantNTSC)
+                {
+                    //no Composite/SCART
+                    if(wantPort == 3)
+                        wantPort = 0;
+                }
+                else //want PAL
+                {
+                    //no Composite/S-Video
+                    if(wantPort == 2)
+                        wantPort = 3;
+                }
+                //Set default res for port
+                if(wantPort == 0) wantRes = 4; //720p from HDMI
+                else if(wantPort == 1) wantRes = 3; //480p from Component
+                else if(wantPort == 2) wantRes = 2; //480i from Composite/S-Video
+                else if(wantPort == 3) wantRes = 10; //480i PAL60 from Composite/SCART
+            }
+            else if(curSel == 2) //Resolution
+            {
+                wantRes++;
+                if(wantRes > 14)
+                    wantRes = 1;
+            }
+            redraw = 1;
+        }
 
-		if( btnDown & VPAD_BUTTON_LEFT )
-		{
-			if(curSel == 0) //NTSC/PAL
-			{
-				wantNTSC = !wantNTSC;
-				if(wantNTSC)
-				{
-					//no Composite/SCART
-					if(wantPort == 3)
-					{
-						wantPort = 2; //Composite/S-Video
-						wantRes = 2; //480i
-					}
-				}
-				else //want PAL
-				{
-					//no Composite/S-Video
-					if(wantPort == 2)
-					{
-						wantPort = 3; //Composite/SCART
-						wantRes = 10; //480i PAL60
-					}
-				}
-			}
-			else if(curSel == 1) //Port
-			{
-				wantPort--;
-				if(wantPort < 0)
-					wantPort = 3;
-				if(wantNTSC)
-				{
-					//no Composite/SCART
-					if(wantPort == 3)
-						wantPort = 2;
-				}
-				else //want PAL
-				{
-					//no Composite/S-Video
-					if(wantPort == 2)
-						wantPort = 1;
-				}
-				//Set default res for port
-				if(wantPort == 0) wantRes = 4; //720p from HDMI
-				else if(wantPort == 1) wantRes = 3; //480p from Component
-				else if(wantPort == 2) wantRes = 2; //480i from Composite/S-Video
-				else if(wantPort == 3) wantRes = 10; //480i PAL60 from Composite/SCART
-			}
-			else if(curSel == 2) //Resolution
-			{
-				wantRes--;
-				if(wantRes < 0)
-					wantRes = 14;
-			}
-			redraw = 1;
-		}
+        if( btnDown & VPAD_BUTTON_LEFT )
+        {
+            if(curSel == 0) //NTSC/PAL
+            {
+                wantNTSC = !wantNTSC;
+                if(wantNTSC)
+                {
+                    //no Composite/SCART
+                    if(wantPort == 3)
+                    {
+                        wantPort = 2; //Composite/S-Video
+                        wantRes = 2; //480i
+                    }
+                }
+                else //want PAL
+                {
+                    //no Composite/S-Video
+                    if(wantPort == 2)
+                    {
+                        wantPort = 3; //Composite/SCART
+                        wantRes = 10; //480i PAL60
+                    }
+                }
+            }
+            else if(curSel == 1) //Port
+            {
+                wantPort--;
+                if(wantPort < 0)
+                    wantPort = 3;
+                if(wantNTSC)
+                {
+                    //no Composite/SCART
+                    if(wantPort == 3)
+                        wantPort = 2;
+                }
+                else //want PAL
+                {
+                    //no Composite/S-Video
+                    if(wantPort == 2)
+                        wantPort = 1;
+                }
+                //Set default res for port
+                if(wantPort == 0) wantRes = 4; //720p from HDMI
+                else if(wantPort == 1) wantRes = 3; //480p from Component
+                else if(wantPort == 2) wantRes = 2; //480i from Composite/S-Video
+                else if(wantPort == 3) wantRes = 10; //480i PAL60 from Composite/SCART
+            }
+            else if(curSel == 2) //Resolution
+            {
+                wantRes--;
+                if(wantRes < 0)
+                    wantRes = 14;
+            }
+            redraw = 1;
+        }
 
-		if( btnDown & VPAD_BUTTON_DOWN )
-		{
-			curSel++;
-			if(curSel > 2) curSel = 0;
-			redraw = 1;
-		}
+        if( btnDown & VPAD_BUTTON_DOWN )
+        {
+            curSel++;
+            if(curSel > 2) curSel = 0;
+            redraw = 1;
+        }
 
-		if( btnDown & VPAD_BUTTON_UP )
-		{
-			curSel--;
-			if(curSel < 0) curSel = 2;
-			redraw = 1;
-		}
+        if( btnDown & VPAD_BUTTON_UP )
+        {
+            curSel--;
+            if(curSel < 0) curSel = 2;
+            redraw = 1;
+        }
 
-		if( btnDown & VPAD_BUTTON_A )
-		{
-			applyChanges = true;
-			break;
-		}
+        if( btnDown & VPAD_BUTTON_A )
+        {
+            applyChanges = true;
+            break;
+        }
 
-		if( redraw )
-		{
-			OSScreenClearBuffer(0);
-			OSScreenPutFont(0, 0, verChar);
-			char printStr[256];
-			sprintf(printStr,"%s Video Region: %s", (curSel==0)?">":" ", wantNTSC ? "NTSC" : "PAL");
-			OSScreenPutFont(0, 1, printStr);
-			sprintf(printStr,"%s Output Port: %s", (curSel==1)?">":" ", outPortStr[wantPort]);
-			OSScreenPutFont(0, 2, printStr);
-			sprintf(printStr,"%s Output Resolution: %s", (curSel==2)?">":" ", outResStr[wantRes]);
-			OSScreenPutFont(0, 3, printStr);
-			OSScreenPutFont(0, 4, "Press A to apply settings.");
-			OSScreenPutFont(0, 5, "Press Home to exit without changes.");
-			OSScreenFlipBuffers();
-			redraw = 0;
-		}
-	}
+        if( redraw )
+        {
+            OSScreenClearBuffer(0);
+            OSScreenPutFont(0, 0, verChar);
+            char printStr[256];
+            sprintf(printStr,"%s Video Region: %s", (curSel==0)?">":" ", wantNTSC ? "NTSC" : "PAL");
+            OSScreenPutFont(0, 1, printStr);
+            sprintf(printStr,"%s Output Port: %s", (curSel==1)?">":" ", outPortStr[wantPort]);
+            OSScreenPutFont(0, 2, printStr);
+            sprintf(printStr,"%s Output Resolution: %s", (curSel==2)?">":" ", outResStr[wantRes]);
+            OSScreenPutFont(0, 3, printStr);
+            OSScreenPutFont(0, 4, "Press A to apply settings.");
+            OSScreenPutFont(0, 5, "Press Home to exit without changes.");
+            OSScreenFlipBuffers();
+            redraw = 0;
+        }
+    }
 
-	OSScreenClearBuffer(0);
-	OSScreenFlipBuffers();
+    OSScreenClearBuffer(0);
+    OSScreenFlipBuffers();
 
-	OSScreenEnable(FALSE);
-	if (ProcUIInForeground()) {
-		OSScreenShutdown();
-		procUiCallbackRelease(nullptr);
-	}
+    OSScreenEnable(FALSE);
+    if (ProcUIInForeground()) {
+        OSScreenShutdown();
+        procUiCallbackRelease(nullptr);
+    }
 
-	if(applyChanges)
-	{
-		if((isNTSC && !wantNTSC) || (!isNTSC && wantNTSC))
-			AVMSetTVVideoRegion(wantNTSC ? AVM_TV_VIDEO_REGION_NTSC : AVM_TV_VIDEO_REGION_PAL, (TVEPort) wantPort, (AVMTvResolution) wantRes);
-		else if(outPort != wantPort)
-			AVMSetTVOutPort((TVEPort) wantPort, (AVMTvResolution) wantRes);
-		else //only set resolution
-			AVMSetTVScanResolution((AVMTvResolution) wantRes);
-	}
-	return EXIT_SUCCESS;
+    if(applyChanges)
+    {
+        if((isNTSC && !wantNTSC) || (!isNTSC && wantNTSC))
+            AVMSetTVVideoRegion(wantNTSC ? AVM_TV_VIDEO_REGION_NTSC : AVM_TV_VIDEO_REGION_PAL, (TVEPort) wantPort, (AVMTvResolution) wantRes);
+        else if(outPort != wantPort)
+            AVMSetTVOutPort((TVEPort) wantPort, (AVMTvResolution) wantRes);
+        else //only set resolution
+            AVMSetTVScanResolution((AVMTvResolution) wantRes);
+    }
+    return EXIT_SUCCESS;
 }
