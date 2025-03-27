@@ -15,6 +15,7 @@
 #include <string>
 
 #include <avm/tv.h>
+#include <coreinit/foreground.h>
 #include <coreinit/memfrmheap.h>
 #include <coreinit/screen.h>
 #include <coreinit/thread.h>
@@ -150,6 +151,11 @@ static unsigned int getButtonsDown()
     return btnDown;
 }
 
+void procUiSaveCallback()
+{
+    OSSavesDone_ReadyToRelease();
+}
+
 unsigned int procUiCallbackAcquire([[maybe_unused]] void *context)
 {
     MEMHeapHandle heap = MEMGetBaseHeapHandle(MEM_BASE_HEAP_MEM1);
@@ -174,24 +180,11 @@ static inline bool runningFromMiiMaker()
 
 int main(int argc, char **argv)
 {
-    int redraw = 1;
-
-    bool isNTSC = AVMDebugIsNTSC();
-    bool wantNTSC = isNTSC;
-
-    int outPort = TVEGetCurrentPort();
-    if(outPort > 3) outPort = 0;
-    int wantPort = outPort;
-
-    //int outRes; //still need to get resolution somehow...
-    int wantRes = 2; //default 480i
-    if(outPort == 0) wantRes = 4; //720p from HDMI
-    else if(outPort == 1) wantRes = 3; //480p from Component
-    else if(outPort == 3) wantRes = 10; //480i PAL60 from Composite/SCART
-
     if (runningFromMiiMaker()) {
         OSEnableHomeButtonMenu(FALSE);
     }
+    
+    ProcUIInit(procUiSaveCallback);
 
     OSScreenInit();
     sScreenBufTvSize = OSScreenGetBufferSizeEx(SCREEN_TV);
@@ -209,10 +202,32 @@ int main(int argc, char **argv)
     getButtonsDown();
 
     int curSel = 0;
-    bool applyChanges = false;
-    while(1)
-    {
+    int redraw = 1;
+
+    bool isNTSC = AVMDebugIsNTSC();
+    bool wantNTSC = isNTSC;
+
+    int outPort = TVEGetCurrentPort();
+    if(outPort > 3) outPort = 0;
+    int wantPort = outPort;
+
+    //int outRes; //still need to get resolution somehow...
+    int wantRes = 2; //default 480i
+    if(outPort == 0) wantRes = 4; //720p from HDMI
+    else if(outPort == 1) wantRes = 3; //480p from Component
+    else if(outPort == 3) wantRes = 10; //480i PAL60 from Composite/SCART
+
+    ProcUIStatus status = PROCUI_STATUS_IN_FOREGROUND;
+    while ((status = ProcUIProcessMessages(TRUE)) != PROCUI_STATUS_EXITING) {
         OSSleepTicks(OSMicrosecondsToTicks(25000));
+        if (status == PROCUI_STATUS_RELEASE_FOREGROUND) {
+            redraw = 1; //for when we return to foreground
+            ProcUIDrawDoneRelease();
+            continue;
+        } else if (status != PROCUI_STATUS_IN_FOREGROUND) {
+            continue;
+        }
+        
         unsigned int btnDown = getButtonsDown();
 
         if (btnDown & VPAD_BUTTON_HOME) {
@@ -347,8 +362,12 @@ int main(int argc, char **argv)
 
         if( btnDown & VPAD_BUTTON_A )
         {
-            applyChanges = true;
-            break;
+            if((isNTSC && !wantNTSC) || (!isNTSC && wantNTSC))
+                AVMSetTVVideoRegion(wantNTSC ? AVM_TV_VIDEO_REGION_NTSC : AVM_TV_VIDEO_REGION_PAL, (TVEPort) wantPort, (AVMTvResolution) wantRes);
+            else if(outPort != wantPort)
+                AVMSetTVOutPort((TVEPort) wantPort, (AVMTvResolution) wantRes);
+            else //only set resolution
+                AVMSetTVScanResolution((AVMTvResolution) wantRes);
         }
 
         if( redraw )
@@ -369,23 +388,13 @@ int main(int argc, char **argv)
         }
     }
 
-    OSScreenClearBuffer(0);
-    OSScreenFlipBuffers();
-
-    OSScreenEnable(FALSE);
     if (ProcUIInForeground()) {
+        OSScreenEnable(FALSE);
         OSScreenShutdown();
         procUiCallbackRelease(nullptr);
     }
 
-    if(applyChanges)
-    {
-        if((isNTSC && !wantNTSC) || (!isNTSC && wantNTSC))
-            AVMSetTVVideoRegion(wantNTSC ? AVM_TV_VIDEO_REGION_NTSC : AVM_TV_VIDEO_REGION_PAL, (TVEPort) wantPort, (AVMTvResolution) wantRes);
-        else if(outPort != wantPort)
-            AVMSetTVOutPort((TVEPort) wantPort, (AVMTvResolution) wantRes);
-        else //only set resolution
-            AVMSetTVScanResolution((AVMTvResolution) wantRes);
-    }
+    ProcUIShutdown();
+
     return EXIT_SUCCESS;
 }
