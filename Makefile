@@ -18,8 +18,8 @@ TOPDIR ?= $(CURDIR)
 # APP_AUTHOR sets the author of the application
 #-------------------------------------------------------------------------------
 APP_NAME		:= Video Mode Changer
-APP_SHORTNAME	:= Video Changer
-APP_AUTHOR		:= Maschell
+APP_SHORTNAME	:= Video Mode Changer
+APP_AUTHOR		:= Lynx64
 
 include $(DEVKITPRO)/wut/share/wut_rules
 
