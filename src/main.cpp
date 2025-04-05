@@ -213,15 +213,14 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv)
     bool isNTSC = AVMDebugIsNTSC();
     bool wantNTSC = isNTSC;
 
-    int outPort = TVEGetCurrentPort();
-    if(outPort > 3) outPort = 0;
-    int wantPort = outPort;
+    int isPort = TVEGetCurrentPort();
+    int wantPort = isPort;
 
     //int outRes; //still need to get resolution somehow...
     int wantRes = 2; //default 480i
-    if(outPort == 0) wantRes = 4; //720p from HDMI
-    else if(outPort == 1) wantRes = 3; //480p from Component
-    else if(outPort == 3) wantRes = 10; //480i PAL60 from Composite/SCART
+    if(isPort == 0) wantRes = 4; //720p from HDMI
+    else if(isPort == 1) wantRes = 3; //480p from Component
+    else if(isPort == 3) wantRes = 10; //480i PAL60 from Composite/SCART
 
     ProcUIStatus status = PROCUI_STATUS_IN_FOREGROUND;
     while ((status = ProcUIProcessMessages(TRUE)) != PROCUI_STATUS_EXITING) {
@@ -302,12 +301,18 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv)
 
         if (applyChanges) {
             applyChanges = false;
-            if((isNTSC && !wantNTSC) || (!isNTSC && wantNTSC))
-                AVMSetTVVideoRegion(wantNTSC ? AVM_TV_VIDEO_REGION_NTSC : AVM_TV_VIDEO_REGION_PAL, (TVEPort) wantPort, (AVMTvResolution) wantRes);
-            else if(outPort != wantPort)
-                AVMSetTVOutPort((TVEPort) wantPort, (AVMTvResolution) wantRes);
-            else //only set resolution
+            if (isNTSC != wantNTSC) {
+                if (AVMSetTVVideoRegion(wantNTSC ? AVM_TV_VIDEO_REGION_NTSC : AVM_TV_VIDEO_REGION_PAL, (TVEPort) wantPort, (AVMTvResolution) wantRes) == 0) {
+                    isNTSC = wantNTSC;
+                    isPort = wantPort;
+                }
+            } else if (isPort != wantPort) {
+                if (AVMSetTVOutPort((TVEPort) wantPort, (AVMTvResolution) wantRes) == 0) {
+                    isPort = wantPort;
+                }
+            } else { //only set resolution
                 AVMSetTVScanResolution((AVMTvResolution) wantRes);
+            }
         }
 
         if (redraw) {
