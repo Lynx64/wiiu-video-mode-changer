@@ -31,7 +31,7 @@
 static const char *verStr = "Wii U Video Mode Changer 2025 Port v2.0";
 static const char *authorStr = "By Lynx64. Original by FIX94.";
 
-static const char * const outPortStr[] = {"HDMI", "Component", "Composite/S-Video", "Composite/SCART"};
+static const char * const portStr[] = {"HDMI", "Component", "Composite", "SCART"};
 static const char * const outResStr[] = {"Unused [0]", "576i PAL50", "480i", "480p", "720p", "720p 3D?", "1080i", "1080p", "Unused [8]", "Unused [9]", "480i PAL60", "576p", "720p 50Hz (glitchy GamePad)", "1080i 50Hz (glitchy GamePad)", "1080p 50Hz (glitchy GamePad)"};
 
 static unsigned int sScreenBufTvSize = 0;
@@ -322,7 +322,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv)
             char printStr[256];
             snprintf(printStr, sizeof(printStr), "%s Video Region: %s", curSel == 0 ? ">" : " ", wantNTSC ? "NTSC" : "PAL");
             OSScreenPutFont(0, 1, printStr);
-            snprintf(printStr, sizeof(printStr), "%s Output Port: %s", curSel == 1 ? ">" : " ", outPortStr[wantPort]);
+            snprintf(printStr, sizeof(printStr), "%s Output Port: %s", curSel == 1 ? ">" : " ", portStr[wantPort]);
             OSScreenPutFont(0, 2, printStr);
             snprintf(printStr, sizeof(printStr), "%s Output Resolution: %s", curSel == 2 ? ">" : " ", outResStr[wantRes]);
             OSScreenPutFont(0, 3, printStr);
