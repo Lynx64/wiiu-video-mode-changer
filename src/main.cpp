@@ -63,31 +63,31 @@ static unsigned int wpadToVpad(unsigned int buttons)
 {
     unsigned int convButtons = 0;
 
-    if(buttons & WPAD_BUTTON_LEFT)
+    if (buttons & WPAD_BUTTON_LEFT)
         convButtons |= VPAD_BUTTON_LEFT;
 
-    if(buttons & WPAD_BUTTON_RIGHT)
+    if (buttons & WPAD_BUTTON_RIGHT)
         convButtons |= VPAD_BUTTON_RIGHT;
 
-    if(buttons & WPAD_BUTTON_DOWN)
+    if (buttons & WPAD_BUTTON_DOWN)
         convButtons |= VPAD_BUTTON_DOWN;
 
-    if(buttons & WPAD_BUTTON_UP)
+    if (buttons & WPAD_BUTTON_UP)
         convButtons |= VPAD_BUTTON_UP;
 
-    if(buttons & WPAD_BUTTON_PLUS)
+    if (buttons & WPAD_BUTTON_PLUS)
         convButtons |= VPAD_BUTTON_PLUS;
 
-    if(buttons & WPAD_BUTTON_B)
+    if (buttons & WPAD_BUTTON_B)
         convButtons |= VPAD_BUTTON_B;
 
-    if(buttons & WPAD_BUTTON_A)
+    if (buttons & WPAD_BUTTON_A)
         convButtons |= VPAD_BUTTON_A;
 
-    if(buttons & WPAD_BUTTON_MINUS)
+    if (buttons & WPAD_BUTTON_MINUS)
         convButtons |= VPAD_BUTTON_MINUS;
 
-    if(buttons & WPAD_BUTTON_HOME)
+    if (buttons & WPAD_BUTTON_HOME)
         convButtons |= VPAD_BUTTON_HOME;
 
     return convButtons;
@@ -97,49 +97,49 @@ static unsigned int wpadClassicToVpad(unsigned int buttons)
 {
     unsigned int convButtons = 0;
 
-    if(buttons & WPAD_CLASSIC_BUTTON_LEFT)
+    if (buttons & WPAD_CLASSIC_BUTTON_LEFT)
         convButtons |= VPAD_BUTTON_LEFT;
 
-    if(buttons & WPAD_CLASSIC_BUTTON_RIGHT)
+    if (buttons & WPAD_CLASSIC_BUTTON_RIGHT)
         convButtons |= VPAD_BUTTON_RIGHT;
 
-    if(buttons & WPAD_CLASSIC_BUTTON_DOWN)
+    if (buttons & WPAD_CLASSIC_BUTTON_DOWN)
         convButtons |= VPAD_BUTTON_DOWN;
 
-    if(buttons & WPAD_CLASSIC_BUTTON_UP)
+    if (buttons & WPAD_CLASSIC_BUTTON_UP)
         convButtons |= VPAD_BUTTON_UP;
 
-    if(buttons & WPAD_CLASSIC_BUTTON_PLUS)
+    if (buttons & WPAD_CLASSIC_BUTTON_PLUS)
         convButtons |= VPAD_BUTTON_PLUS;
 
-    if(buttons & WPAD_CLASSIC_BUTTON_X)
+    if (buttons & WPAD_CLASSIC_BUTTON_X)
         convButtons |= VPAD_BUTTON_X;
 
-    if(buttons & WPAD_CLASSIC_BUTTON_Y)
+    if (buttons & WPAD_CLASSIC_BUTTON_Y)
         convButtons |= VPAD_BUTTON_Y;
 
-    if(buttons & WPAD_CLASSIC_BUTTON_B)
+    if (buttons & WPAD_CLASSIC_BUTTON_B)
         convButtons |= VPAD_BUTTON_B;
 
-    if(buttons & WPAD_CLASSIC_BUTTON_A)
+    if (buttons & WPAD_CLASSIC_BUTTON_A)
         convButtons |= VPAD_BUTTON_A;
 
-    if(buttons & WPAD_CLASSIC_BUTTON_MINUS)
+    if (buttons & WPAD_CLASSIC_BUTTON_MINUS)
         convButtons |= VPAD_BUTTON_MINUS;
 
-    if(buttons & WPAD_CLASSIC_BUTTON_HOME)
+    if (buttons & WPAD_CLASSIC_BUTTON_HOME)
         convButtons |= VPAD_BUTTON_HOME;
 
-    if(buttons & WPAD_CLASSIC_BUTTON_ZR)
+    if (buttons & WPAD_CLASSIC_BUTTON_ZR)
         convButtons |= VPAD_BUTTON_ZR;
 
-    if(buttons & WPAD_CLASSIC_BUTTON_ZL)
+    if (buttons & WPAD_CLASSIC_BUTTON_ZL)
         convButtons |= VPAD_BUTTON_ZL;
 
-    if(buttons & WPAD_CLASSIC_BUTTON_R)
+    if (buttons & WPAD_CLASSIC_BUTTON_R)
         convButtons |= VPAD_BUTTON_R;
 
-    if(buttons & WPAD_CLASSIC_BUTTON_L)
+    if (buttons & WPAD_CLASSIC_BUTTON_L)
         convButtons |= VPAD_BUTTON_L;
 
     return convButtons;
@@ -201,7 +201,8 @@ static inline bool runningFromMiiMaker()
     return (OSGetTitleID() & 0xFFFFFFFFFFFFF0FFull) == 0x000500101004A000ull;
 }
 
-static unsigned int setDefaultResIndex(const int port) {
+static unsigned int setDefaultResIndex(const int port)
+{
     switch (port) {
         case 0: //HDMI
             return 3; //720p
@@ -324,13 +325,15 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv)
 
         if (btnDown & VPAD_BUTTON_DOWN) {
             curSel++;
-            if (curSel > 2) curSel = 0;
+            if (curSel > 2)
+                curSel = 0;
             redraw = true;
         }
 
         if (btnDown & VPAD_BUTTON_UP) {
             curSel--;
-            if (curSel < 0) curSel = 2;
+            if (curSel < 0)
+                curSel = 2;
             redraw = true;
         }
 
