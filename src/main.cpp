@@ -8,6 +8,7 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <iterator>
 
 #include <avm/tv.h>
 #include <coreinit/foreground.h>
@@ -32,7 +33,26 @@ static const char *verStr = "Wii U Video Mode Changer 2025 Port v2.0";
 static const char *authorStr = "By Lynx64. Original by FIX94.";
 
 static const char * const portStr[] = {"HDMI", "Component", "Composite", "SCART"};
-static const char * const outResStr[] = {"Unused [0]", "576i PAL50", "480i", "480p", "720p", "720p 3D?", "1080i", "1080p", "Unused [8]", "Unused [9]", "480i PAL60", "576p", "720p 50Hz (glitchy GamePad)", "1080i 50Hz (glitchy GamePad)", "1080p 50Hz (glitchy GamePad)"};
+
+struct Resolution {
+    const char *name;
+    const AVMTvResolution value;
+};
+
+static constexpr const Resolution resolutions[] = {
+        {"576i", AVM_TV_RESOLUTION_576I},
+        {"480i", AVM_TV_RESOLUTION_480I},
+        {"480p", AVM_TV_RESOLUTION_480P},
+        {"720p", AVM_TV_RESOLUTION_720P},
+        {"720p 3D", AVM_TV_RESOLUTION_720P_3D},
+        {"1080i", AVM_TV_RESOLUTION_1080I},
+        {"1080p", AVM_TV_RESOLUTION_1080P},
+        {"480i PAL60", AVM_TV_RESOLUTION_480I_PAL60},
+        {"576p", AVM_TV_RESOLUTION_576P},
+        {"720p 50Hz (glitchy GamePad)", AVM_TV_RESOLUTION_720P_50HZ},
+        {"1080i 50Hz (glitchy GamePad)", AVM_TV_RESOLUTION_1080I_50HZ},
+        {"1080p 50Hz (glitchy GamePad)", AVM_TV_RESOLUTION_1080P_50HZ}
+        };
 
 static unsigned int sScreenBufTvSize = 0;
 static unsigned int sScreenBufDrcSize = 0;
@@ -181,12 +201,27 @@ static inline bool runningFromMiiMaker()
     return (OSGetTitleID() & 0xFFFFFFFFFFFFF0FFull) == 0x000500101004A000ull;
 }
 
+static unsigned int setDefaultResIndex(const int port) {
+    switch (port) {
+        case 0: //HDMI
+            return 3; //720p
+        case 1: //Component
+            return 2; //480p
+        case 2: //Composite
+            return 1; //480i
+        case 3: //SCART
+            return 7; //480i PAL60
+        default:
+            return 3; //720p
+    }
+}
+
 int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv)
 {
     if (runningFromMiiMaker()) {
         OSEnableHomeButtonMenu(FALSE);
     }
-    
+
     ProcUIInit(procUiSaveCallback);
 
     OSScreenInit();
@@ -216,11 +251,19 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv)
     int isPort = TVEGetCurrentPort();
     int wantPort = isPort;
 
-    //int outRes; //still need to get resolution somehow...
-    int wantRes = 2; //default 480i
-    if(isPort == 0) wantRes = 4; //720p from HDMI
-    else if(isPort == 1) wantRes = 3; //480p from Component
-    else if(isPort == 3) wantRes = 10; //480i PAL60 from Composite/SCART
+    unsigned int wantResIndex = setDefaultResIndex(isPort); //fallback if we fail to get/find the current resolution
+    // Since 1080p 50hz is never output by GetTVScanMode, we can
+    // use it to check if the function failed/succeeded (see documentation)
+    AVMTvResolution isRes = AVM_TV_RESOLUTION_1080P_50HZ;
+    AVMGetTVScanMode(&isRes);
+    if (isRes != AVM_TV_RESOLUTION_1080P_50HZ) {
+        for (unsigned int i = 0; i < std::size(resolutions); i++) {
+            if (resolutions[i].value == isRes) {
+                wantResIndex = i;
+                break;
+            }
+        }
+    }
 
     ProcUIStatus status = PROCUI_STATUS_IN_FOREGROUND;
     while ((status = ProcUIProcessMessages(TRUE)) != PROCUI_STATUS_EXITING) {
@@ -232,7 +275,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv)
         } else if (status != PROCUI_STATUS_IN_FOREGROUND) {
             continue;
         }
-        
+
         unsigned int btnDown = getButtonsDown();
 
         if (btnDown & VPAD_BUTTON_HOME) {
@@ -240,7 +283,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv)
                 SYSRelaunchTitle(0, 0);
             }
         }
-        
+
         if (btnDown & VPAD_BUTTON_RIGHT) {
             if (curSel == 0) { //NTSC/PAL
                 wantNTSC = !wantNTSC;
@@ -248,16 +291,13 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv)
                 wantPort++;
                 if (wantPort > 3)
                     wantPort = 0;
-                
+
                 //Set default res for port
-                if(wantPort == 0) wantRes = 4; //720p from HDMI
-                else if(wantPort == 1) wantRes = 3; //480p from Component
-                else if(wantPort == 2) wantRes = 2; //480i from Composite/S-Video
-                else if(wantPort == 3) wantRes = 10; //480i PAL60 from Composite/SCART
+                wantResIndex = setDefaultResIndex(wantPort);
             } else if (curSel == 2) { //Resolution
-                wantRes++;
-                if (wantRes > 14)
-                    wantRes = 1;
+                wantResIndex++;
+                if (wantResIndex > 11)
+                    wantResIndex = 0;
             }
             redraw = true;
         }
@@ -269,16 +309,15 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv)
                 wantPort--;
                 if (wantPort < 0)
                     wantPort = 3;
-                
+
                 //Set default res for port
-                if(wantPort == 0) wantRes = 4; //720p from HDMI
-                else if(wantPort == 1) wantRes = 3; //480p from Component
-                else if(wantPort == 2) wantRes = 2; //480i from Composite/S-Video
-                else if(wantPort == 3) wantRes = 10; //480i PAL60 from Composite/SCART
+                wantResIndex = setDefaultResIndex(wantPort);
             } else if (curSel == 2) { //Resolution
-                wantRes--;
-                if (wantRes < 1)
-                    wantRes = 14;
+                if (wantResIndex == 0) { //this check is different from the others because it's an unsigned int
+                    wantResIndex = 11;
+                } else {
+                    wantResIndex--;
+                }
             }
             redraw = true;
         }
@@ -302,16 +341,16 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv)
         if (applyChanges) {
             applyChanges = false;
             if (isNTSC != wantNTSC) {
-                if (AVMSetTVVideoRegion(wantNTSC ? AVM_TV_VIDEO_REGION_NTSC : AVM_TV_VIDEO_REGION_PAL, (TVEPort) wantPort, (AVMTvResolution) wantRes) == 0) {
+                if (AVMSetTVVideoRegion(wantNTSC ? AVM_TV_VIDEO_REGION_NTSC : AVM_TV_VIDEO_REGION_PAL, (TVEPort) wantPort, resolutions[wantResIndex].value) == 0) {
                     isNTSC = wantNTSC;
                     isPort = wantPort;
                 }
             } else if (isPort != wantPort) {
-                if (AVMSetTVOutPort((TVEPort) wantPort, (AVMTvResolution) wantRes) == 0) {
+                if (AVMSetTVOutPort((TVEPort) wantPort, resolutions[wantResIndex].value) == 0) {
                     isPort = wantPort;
                 }
             } else { //only set resolution
-                AVMSetTVScanResolution((AVMTvResolution) wantRes);
+                AVMSetTVScanResolution(resolutions[wantResIndex].value);
             }
         }
 
@@ -324,7 +363,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv)
             OSScreenPutFont(0, 1, printStr);
             snprintf(printStr, sizeof(printStr), "%s Output Port: %s", curSel == 1 ? ">" : " ", portStr[wantPort]);
             OSScreenPutFont(0, 2, printStr);
-            snprintf(printStr, sizeof(printStr), "%s Output Resolution: %s", curSel == 2 ? ">" : " ", outResStr[wantRes]);
+            snprintf(printStr, sizeof(printStr), "%s Output Resolution: %s", curSel == 2 ? ">" : " ", resolutions[wantResIndex].name);
             OSScreenPutFont(0, 3, printStr);
             OSScreenPutFont(0, 4, "<>: Change value");
             OSScreenPutFont(0, 5, "A: Apply settings");
