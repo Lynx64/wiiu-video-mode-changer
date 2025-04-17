@@ -22,6 +22,8 @@
 #include <sysapp/launch.h>
 #include <vpad/input.h>
 
+extern "C" int AVMSetTVTileMode(unsigned char mode);
+
 #define CONSOLE_FRAME_HEAP_TAG (0x000DECAF)
 
 #define OSScreenEnable(enable)      OSScreenEnableEx(SCREEN_TV, enable); OSScreenEnableEx(SCREEN_DRC, enable);
@@ -233,6 +235,8 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv)
 
     ProcUIRegisterCallback(PROCUI_CALLBACK_ACQUIRE, procUiCallbackAcquire, nullptr, 100);
     ProcUIRegisterCallback(PROCUI_CALLBACK_RELEASE, procUiCallbackRelease, nullptr, 100);
+
+    AVMSetTVTileMode(1); //otherwise when we set the TV the tile mode changes to 4 making the TV screen illegible
 
     AXInit();
 
