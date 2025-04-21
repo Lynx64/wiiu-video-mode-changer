@@ -249,6 +249,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv)
     int curSel = 0;
     bool applyChanges = false;
     bool redraw = true;
+    bool quitOnApply = true;
 
     bool isNTSC = AVMDebugIsNTSC();
     bool wantNTSC = isNTSC;
@@ -303,6 +304,8 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv)
                 wantResIndex++;
                 if (wantResIndex > 11)
                     wantResIndex = 0;
+            } else if (curSel == 3) {
+                quitOnApply = !quitOnApply;
             }
             redraw = true;
         }
@@ -323,13 +326,15 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv)
                 } else {
                     wantResIndex--;
                 }
+            } else if (curSel == 3) {
+                quitOnApply = !quitOnApply;
             }
             redraw = true;
         }
 
         if (btnDown & VPAD_BUTTON_DOWN) {
             curSel++;
-            if (curSel > 2)
+            if (curSel > 3)
                 curSel = 0;
             redraw = true;
         }
@@ -337,7 +342,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv)
         if (btnDown & VPAD_BUTTON_UP) {
             curSel--;
             if (curSel < 0)
-                curSel = 2;
+                curSel = 3;
             redraw = true;
         }
 
@@ -347,17 +352,26 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv)
 
         if (applyChanges) {
             applyChanges = false;
+            int applySuccess = 0;
             if (isNTSC != wantNTSC) {
-                if (AVMSetTVVideoRegion(wantNTSC ? AVM_TV_VIDEO_REGION_NTSC : AVM_TV_VIDEO_REGION_PAL, (TVEPort) wantPort, resolutions[wantResIndex].value) == 0) {
+                if ((applySuccess = AVMSetTVVideoRegion(wantNTSC ? AVM_TV_VIDEO_REGION_NTSC : AVM_TV_VIDEO_REGION_PAL, (TVEPort) wantPort, resolutions[wantResIndex].value)) == 0) {
                     isNTSC = wantNTSC;
                     isPort = wantPort;
                 }
             } else if (isPort != wantPort) {
-                if (AVMSetTVOutPort((TVEPort) wantPort, resolutions[wantResIndex].value) == 0) {
+                if ((applySuccess = AVMSetTVOutPort((TVEPort) wantPort, resolutions[wantResIndex].value)) == 0) {
                     isPort = wantPort;
                 }
             } else { //only set resolution
-                AVMSetTVScanResolution(resolutions[wantResIndex].value);
+                applySuccess = AVMSetTVScanResolution(resolutions[wantResIndex].value);
+            }
+
+            if (quitOnApply && applySuccess == 0) {
+                if (runningFromMiiMaker()) {
+                    SYSRelaunchTitle(0, 0);
+                } else {
+                    SYSLaunchMenu();
+                }
             }
         }
 
@@ -372,9 +386,11 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv)
             OSScreenPutFont(0, 2, printStr);
             snprintf(printStr, sizeof(printStr), "%s Output Resolution: %s", curSel == 2 ? ">" : " ", resolutions[wantResIndex].name);
             OSScreenPutFont(0, 3, printStr);
-            OSScreenPutFont(0, 4, "<>: Change value");
-            OSScreenPutFont(0, 5, "A: Apply settings");
-            OSScreenPutFont(0, 6, "HOME: Exit");
+            snprintf(printStr, sizeof(printStr), "%s Exit after Applying: %s", curSel == 3 ? ">" : " ", quitOnApply ? "Yes" : "No");
+            OSScreenPutFont(0, 4, printStr);
+            OSScreenPutFont(0, 5, "<>: Change value");
+            OSScreenPutFont(0, 6, "A: Apply settings");
+            OSScreenPutFont(0, 7, "HOME: Exit");
 
             OSScreenPutFont(0, 16, authorStr);
 
