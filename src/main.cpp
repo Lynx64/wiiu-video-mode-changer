@@ -32,7 +32,7 @@ extern "C" int AVMSetTVTileMode(unsigned char mode);
 #define OSScreenPutFont(x, y, buf)  OSScreenPutFontEx(SCREEN_TV, x, y, buf); OSScreenPutFontEx(SCREEN_DRC, x, y, buf);
 #define OSScreenFlipBuffers()       OSScreenFlipBuffersEx(SCREEN_TV); OSScreenFlipBuffersEx(SCREEN_DRC);
 
-static const char *verStr = "Wii U Video Mode Changer 2025 Port v2.0";
+static const char *verStr = "Wii U Video Mode Changer Aroma Port v2.0";
 static const char *authorStr = "By Lynx64. Original by FIX94.";
 
 static const char * const portStr[] = {"HDMI", "Component", "Composite", "SCART"};
