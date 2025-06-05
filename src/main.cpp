@@ -36,6 +36,7 @@ static const char *verStr = "Wii U Video Mode Changer Aroma Port v2.0";
 static const char *authorStr = "By Lynx64. Original by FIX94.";
 
 static const char * const portStr[] = {"HDMI", "Component", "Composite", "SCART"};
+static const char *aspectRatioStr[] = {"4:3", "16:9"};
 
 struct Resolution {
     const char *name;
@@ -272,6 +273,10 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv)
         }
     }
 
+    AVMTvAspectRatio isAspectRatio = AVM_TV_ASPECT_RATIO_16_9;
+    AVMGetTVAspectRatio(&isAspectRatio);
+    AVMTvAspectRatio wantAspectRatio = isAspectRatio;
+
     ProcUIStatus status = PROCUI_STATUS_IN_FOREGROUND;
     while ((status = ProcUIProcessMessages(TRUE)) != PROCUI_STATUS_EXITING) {
         OSSleepTicks(OSMillisecondsToTicks(25));
@@ -305,7 +310,9 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv)
                 wantResIndex++;
                 if (wantResIndex > 11)
                     wantResIndex = 0;
-            } else if (curSel == 3) {
+            } else if (curSel == 3) { //Aspect Ratio
+                wantAspectRatio = (AVMTvAspectRatio) !wantAspectRatio;
+            } else if (curSel == 4) {
                 quitOnApply = !quitOnApply;
             }
             redraw = true;
@@ -327,7 +334,9 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv)
                 } else {
                     wantResIndex--;
                 }
-            } else if (curSel == 3) {
+            } else if (curSel == 3) { //Aspect Ratio
+                wantAspectRatio = (AVMTvAspectRatio) !wantAspectRatio;
+            } else if (curSel == 4) {
                 quitOnApply = !quitOnApply;
             }
             redraw = true;
@@ -335,7 +344,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv)
 
         if (btnDown & VPAD_BUTTON_DOWN) {
             curSel++;
-            if (curSel > 3)
+            if (curSel > 4)
                 curSel = 0;
             redraw = true;
         }
@@ -343,7 +352,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv)
         if (btnDown & VPAD_BUTTON_UP) {
             curSel--;
             if (curSel < 0)
-                curSel = 3;
+                curSel = 4;
             redraw = true;
         }
 
@@ -367,6 +376,12 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv)
                 applySuccess = AVMSetTVScanResolution(resolutions[wantResIndex].value);
             }
 
+            if (isAspectRatio != wantAspectRatio) {
+                if (AVMSetTVAspectRatio(wantAspectRatio) == TRUE) {
+                    isAspectRatio = wantAspectRatio;
+                }
+            }
+
             if (quitOnApply && applySuccess == 0) {
                 if (runningFromMiiMaker()) {
                     SYSRelaunchTitle(0, 0);
@@ -387,11 +402,13 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv)
             OSScreenPutFont(0, 2, printStr);
             snprintf(printStr, sizeof(printStr), "%s Output Resolution: %s", curSel == 2 ? ">" : " ", resolutions[wantResIndex].name);
             OSScreenPutFont(0, 3, printStr);
-            snprintf(printStr, sizeof(printStr), "%s Exit after Applying: %s", curSel == 3 ? ">" : " ", quitOnApply ? "Yes" : "No");
+            snprintf(printStr, sizeof(printStr), "%s Aspect Ratio: %s", curSel == 3 ? ">" : " ", aspectRatioStr[wantAspectRatio]);
             OSScreenPutFont(0, 4, printStr);
-            OSScreenPutFont(0, 5, "<>: Change value");
-            OSScreenPutFont(0, 6, "A: Apply settings");
-            OSScreenPutFont(0, 7, "HOME: Exit");
+            snprintf(printStr, sizeof(printStr), "%s Exit after Applying: %s", curSel == 4 ? ">" : " ", quitOnApply ? "Yes" : "No");
+            OSScreenPutFont(0, 5, printStr);
+            OSScreenPutFont(0, 6, "<>: Change value");
+            OSScreenPutFont(0, 7, "A: Apply settings");
+            OSScreenPutFont(0, 8, "HOME: Exit");
 
             OSScreenPutFont(0, 16, authorStr);
 
