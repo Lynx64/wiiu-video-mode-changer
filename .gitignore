@@ -11,6 +11,7 @@
 /sd_loader/*.elf
 /udp_debug_reader/obj
 /udp_debug_reader/GeckoLog.txt
+/wiiu/
 *.rpx
 *.wuhb
 *.zip
