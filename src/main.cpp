@@ -9,6 +9,7 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <format>
 #include <iterator>
 
 #include <avm/tv.h>
@@ -397,17 +398,17 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv)
             OSScreenClearBuffer(0);
 
             OSScreenPutFont(0, 0, verStr);
-            char printStr[256];
-            snprintf(printStr, sizeof(printStr), "%s Video Region: %s", curSel == 0 ? ">" : " ", wantNTSC ? "NTSC" : "PAL");
-            OSScreenPutFont(0, 1, printStr);
-            snprintf(printStr, sizeof(printStr), "%s Output Port: %s", curSel == 1 ? ">" : " ", portStr[wantPort]);
-            OSScreenPutFont(0, 2, printStr);
-            snprintf(printStr, sizeof(printStr), "%s Output Resolution: %s", curSel == 2 ? ">" : " ", resolutions[wantResIndex].name);
-            OSScreenPutFont(0, 3, printStr);
-            snprintf(printStr, sizeof(printStr), "%s Aspect Ratio: %s", curSel == 3 ? ">" : " ", aspectRatioStr[wantAspectRatio]);
-            OSScreenPutFont(0, 4, printStr);
-            snprintf(printStr, sizeof(printStr), "%s Exit after Applying: %s", curSel == 4 ? ">" : " ", quitOnApply ? "Yes" : "No");
-            OSScreenPutFont(0, 5, printStr);
+            std::string printStr;
+            printStr = std::format("{} Video Region: {}", curSel == 0 ? ">" : " ", wantNTSC ? "NTSC" : "PAL");
+            OSScreenPutFont(0, 1, printStr.c_str());
+            printStr = std::format("{} Output Port: {}", curSel == 1 ? ">" : " ", portStr[wantPort]);
+            OSScreenPutFont(0, 2, printStr.c_str());
+            printStr = std::format("{} Output Resolution: {}", curSel == 2 ? ">" : " ", resolutions[wantResIndex].name);
+            OSScreenPutFont(0, 3, printStr.c_str());
+            printStr = std::format("{} Aspect Ratio: {}", curSel == 3 ? ">" : " ", aspectRatioStr[wantAspectRatio]);
+            OSScreenPutFont(0, 4, printStr.c_str());
+            printStr = std::format("{} Exit after Applying: {}", curSel == 4 ? ">" : " ", quitOnApply ? "Yes" : "No");
+            OSScreenPutFont(0, 5, printStr.c_str());
             OSScreenPutFont(0, 6, "<>: Change value");
             OSScreenPutFont(0, 7, "A: Apply settings");
             OSScreenPutFont(0, 8, "HOME: Exit");
