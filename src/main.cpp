@@ -58,6 +58,8 @@ static constexpr const Resolution resolutions[] = {
         {"1080p 50Hz (glitchy GamePad)", AVM_TV_RESOLUTION_1080P_50HZ}
         };
 
+static constexpr std::size_t RESOLUTION_COUNT = std::size(resolutions);
+
 static unsigned int sScreenBufTvSize = 0;
 static unsigned int sScreenBufDrcSize = 0;
 static void *sScreenBufTv = nullptr;
@@ -265,7 +267,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv)
     AVMTvResolution isRes = AVM_TV_RESOLUTION_1080P_50HZ;
     AVMGetTVScanMode(&isRes);
     if (isRes != AVM_TV_RESOLUTION_1080P_50HZ) {
-        for (unsigned int i = 0; i < std::size(resolutions); i++) {
+        for (unsigned int i = 0; i < RESOLUTION_COUNT; i++) {
             if (resolutions[i].value == isRes) {
                 wantResIndex = i;
                 break;
@@ -308,10 +310,10 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv)
                 wantResIndex = setDefaultResIndex(wantPort);
             } else if (curSel == 2) { //Resolution
                 wantResIndex++;
-                if (wantResIndex > 11)
+                if (wantResIndex >= RESOLUTION_COUNT)
                     wantResIndex = 0;
             } else if (curSel == 3) { //Aspect Ratio
-                wantAspectRatio = (AVMTvAspectRatio) !wantAspectRatio;
+                wantAspectRatio = static_cast<AVMTvAspectRatio>(!wantAspectRatio);
             } else if (curSel == 4) {
                 quitOnApply = !quitOnApply;
             }
@@ -330,12 +332,12 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv)
                 wantResIndex = setDefaultResIndex(wantPort);
             } else if (curSel == 2) { //Resolution
                 if (wantResIndex == 0) { //this check is different from the others because it's an unsigned int
-                    wantResIndex = 11;
+                    wantResIndex = RESOLUTION_COUNT - 1;
                 } else {
                     wantResIndex--;
                 }
             } else if (curSel == 3) { //Aspect Ratio
-                wantAspectRatio = (AVMTvAspectRatio) !wantAspectRatio;
+                wantAspectRatio = static_cast<AVMTvAspectRatio>(!wantAspectRatio);
             } else if (curSel == 4) {
                 quitOnApply = !quitOnApply;
             }
