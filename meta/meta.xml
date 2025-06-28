@@ -3,7 +3,7 @@
   <name>Video Mode Changer</name>
   <coder>Lynx64</coder>
   <version>2.1</version>
-  <release_date>20250423000000</release_date>
+  <release_date>20250628000000</release_date>
   <url>https://github.com/Lynx64/wiiu-video-mode-changer</url>
   <short_description>2025 Port. Temporarily change the displayed video mode</short_description>
   <long_description>This allows quick changes to the currently displayed video mode. It's also temporary so after a reboot or something like that the settings will be reset to the ones you set in the system settings.
