@@ -36,8 +36,8 @@ extern "C" int AVMSetTVTileMode(unsigned char mode);
 static const char *verStr = "Wii U Video Mode Changer Aroma Port v2.1";
 static const char *authorStr = "By Lynx64. Original by FIX94.";
 
-static const char * const portStr[] = {"HDMI", "Component", "Composite", "SCART"};
-static const char *aspectRatioStr[] = {"4:3", "16:9"};
+static constexpr const char *portStr[] = {"HDMI", "Component", "Composite", "SCART"};
+static constexpr const char *aspectRatioStr[] = {"4:3", "16:9"};
 
 struct Resolution {
     const char *name;
